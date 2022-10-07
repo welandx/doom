@@ -15,6 +15,7 @@
 - [[#org-mode][Org-mode]]
   - [[#settings][settings]]
   - [[#prettify][Prettify]]
+  - [[#org-roam][Org-roam]]
   - [[#latex][LaTex]]
 - [[#meow][Meow]]
   - [[#other-keymap][Other keymap]]
@@ -60,6 +61,7 @@ only for emacs >= 29, true transparent
 #+end_src
 * App
 ** Telega
+telegram client in emacs
 #+begin_src emacs-lisp :tangle yes
 (use-package! telega
   :defer t
@@ -77,6 +79,8 @@ only for emacs >= 29, true transparent
   (define-key telega-msg-button-map "h" nil))
 #+end_src
 ** Rime
+chinese input method, depend on librime; it's better to use system input method
+which has great performance instead of use pyim
 #+begin_src emacs-lisp :tangle yes
 (use-package! rime
   :defer t
@@ -93,6 +97,7 @@ only for emacs >= 29, true transparent
           )))
 #+end_src
 ** Elfeed
+RSS: news
 #+begin_src emacs-lisp :tangle yes
 ;;(use-package! elfeed)
 #+end_src
@@ -121,7 +126,7 @@ display in center
   (org-mode . olivetti-mode))
 #+end_src
 
-** COMMENT Org-roam
+** Org-roam
 add tags
 #+begin_src emacs-lisp :tangle yes
 (after! org-roam
@@ -143,6 +148,7 @@ ripgrep in roam
    ;; (require 'consult-org-roam)
    ;; ;; Activate the minor-mode
    ;; (consult-org-roam-mode 1)
+   :after org-roam
    :custom
    (consult-org-roam-grep-func #'consult-ripgrep)
    :config
@@ -197,6 +203,9 @@ Auto toggle preview display
 #+end_src
 
 * Meow
+map key in meow normal mode:
+1. system clipboard
+2. comment
 #+begin_src emacs-lisp :tangle yes
 (map! :map meow-normal-state-keymap
       ("P" #'meow-clipboard-yank)
@@ -204,10 +213,13 @@ Auto toggle preview display
       ("M" #'meow-comment)
         )
 #+end_src
+
+there is also ~meow-keypad-state-keymap~, but it's unnecessary to map this.
+
 ** Other keymap
 #+begin_src emacs-lisp :tangle yes
 (global-set-key (kbd "C-c w") 'other-window)
-(global-set-key (kbd "C-s") '+default/search-buffer)
+(global-set-key (kbd "C-s") '+default/search-buffer) ;; go to line
 (global-set-key (kbd "C-c b") 'switch-to-buffer)
 
 (after! yasnippet
@@ -215,6 +227,7 @@ Auto toggle preview display
 #+end_src
 * Search
 ** cregexp for vertico
+现在, 可以使用 =拼音= 搜索 vertico 的选项, 这得益于 pinyinlib, 由 pyim 的作者提供完整的解决方法, 依赖于 pyim
 #+begin_src emacs-lisp :tangle yes
 (after! vertico
   (require 'pyim-cregexp-utils)
