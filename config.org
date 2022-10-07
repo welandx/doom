@@ -73,6 +73,7 @@ only for emacs >= 29, true transparent
 (with-eval-after-load 'telega
   (global-set-key (kbd "C-c C-s") 'telega-sticker-choose-favorite-or-recent)
   (define-key telega-msg-button-map "k" nil)
+  (define-key telega-msg-button-map "l" nil)
   (define-key telega-msg-button-map "h" nil))
 #+end_src
 ** Rime
