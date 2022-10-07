@@ -1,0 +1,251 @@
+#+title: Config
+* Table of Content                 :TOC:
+- [[#doom-config][Doom config]]
+  - [[#head][Head]]
+  - [[#name][Name]]
+  - [[#font][Font]]
+  - [[#theme][Theme]]
+  - [[#line-nums][Line nums]]
+  - [[#org-directory][Org directory]]
+- [[#ui][UI]]
+- [[#app][App]]
+  - [[#telega][Telega]]
+  - [[#rime][Rime]]
+  - [[#elfeed][Elfeed]]
+- [[#org-mode][Org-mode]]
+  - [[#settings][settings]]
+  - [[#prettify][Prettify]]
+  - [[#latex][LaTex]]
+- [[#meow][Meow]]
+  - [[#other-keymap][Other keymap]]
+- [[#search][Search]]
+  - [[#cregexp-for-vertico][cregexp for vertico]]
+- [[#package][Package]]
+- [[#init][Init]]
+
+* Doom config
+** Head
+#+begin_src emacs-lisp :tangle yes
+;;; $DOOMDIR/config.el -*- lexical-binding: t; -*-
+#+end_src
+** Name
+#+begin_src emacs-lisp :tangle yes
+(setq user-full-name "weland"
+      user-mail-address "welandx@gmail.com")
+#+end_src
+** Font
+#+begin_src emacs-lisp :tangle yes
+(setq doom-font (font-spec :family "IBM Plex Mono" :size 20)
+      doom-variable-pitch-font (font-spec :family "overpass" :size 20)
+      doom-unicode-font (font-spec :family "LXGW wenkai" :size 22)
+      doom-serif-font (font-spec :family "Dejavu Sans Mono" :size 20)
+)
+#+end_src
+** Theme
+#+begin_src emacs-lisp :tangle yes
+(setq doom-theme 'kaolin-ocean)
+#+end_src
+** Line nums
+#+begin_src emacs-lisp :tangle yes
+(setq display-line-numbers-type t)
+#+end_src
+** Org directory
+#+begin_src emacs-lisp :tangle yes
+(setq org-directory "~/org/")
+#+end_src
+* UI
+only for emacs >= 29, true transparent
+#+begin_src emacs-lisp :tangle yes
+(setq default-frame-alist (append default-frame-alist '((alpha-background . 85))))
+#+end_src
+* App
+** Telega
+#+begin_src emacs-lisp :tangle yes
+(use-package! telega
+  :defer t
+  :bind
+  ("C-c i t" . telega)
+  :config
+  (setq telega-proxies   (list '(:server "127.0.0.1":port 7891 :enable t :type (:@type "proxyTypeSocks5") )))
+  (telega-notifications-mode t)
+  (telega-mode-line-mode 1))
+
+(with-eval-after-load 'telega
+  (global-set-key (kbd "C-c C-s") 'telega-sticker-choose-favorite-or-recent)
+  (define-key telega-msg-button-map "k" nil)
+  (define-key telega-msg-button-map "h" nil))
+#+end_src
+** Rime
+#+begin_src emacs-lisp :tangle yes
+(use-package! rime
+  :defer t
+  :custom
+  (default-input-method "rime")
+  :config
+  (setq rime-user-data-dir "~/.config/erime")
+  (setq rime-disable-predicates
+        '(
+          rime-predicate-current-input-punctuation-p
+          rime-predicate-after-alphabet-char-p
+          meow-normal-mode-p
+          rime-predicate-current-uppercase-letter-p
+          )))
+#+end_src
+** Elfeed
+#+begin_src emacs-lisp :tangle yes
+;;(use-package! elfeed)
+#+end_src
+* Org-mode
+** settings
+#+begin_src emacs-lisp :tangle yes
+(after! org
+  (setq org-format-latex-options (plist-put org-format-latex-options :scale 1.2))
+  (setq org-special-ctrl-a/e t)
+  (setq org-hide-emphasis-markers t)
+  (setq org-pretty-entities t)
+  )
+#+end_src
+** Prettify
+Disable line numbers display
+
+#+begin_src emacs-lisp :tangle yes
+(add-hook 'org-mode-hook
+           'doom-disable-line-numbers-h)
+#+end_src
+
+display in center
+#+begin_src emacs-lisp :tangle yes
+(use-package! olivetti
+  :hook
+  (org-mode . olivetti-mode))
+#+end_src
+
+** COMMENT Org-roam
+add tags
+#+begin_src emacs-lisp :tangle yes
+(after! org-roam
+  (defvar org-roam-capture-templates
+    '(("d" "default" plain "%?"
+       :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
+                          "#+title: ${title}\n#+filetags: ")
+       :unnarrowed t)) )
+  )
+#+end_src
+
+ripgrep in roam
+
+=this moudle has some terrible errors=
+#+begin_src emacs-lisp :tangle yes
+(use-package! consult-org-roam
+   :defer t
+   ;; :init
+   ;; (require 'consult-org-roam)
+   ;; ;; Activate the minor-mode
+   ;; (consult-org-roam-mode 1)
+   :custom
+   (consult-org-roam-grep-func #'consult-ripgrep)
+   :config
+   ;; Eventually suppress previewing for certain functions
+   (consult-customize
+    consult-org-roam-forward-links
+    :preview-key (kbd "M-."))
+   :bind
+   ("C-c n r x" . consult-org-roam-search))
+#+end_src
+** LaTex
+
+*** Laas
+Quick snippet in LaTex buffer
+#+begin_src emacs-lisp :tangle yes
+(use-package! laas
+  :hook (LaTeX-mode . laas-mode)
+  :config ; do whatever here
+  (aas-set-snippets 'laas-mode
+                    ;; set condition!
+                    :cond #'texmathp ; expand only while in math
+                    "supp" "\\supp"
+                    "On" "O(n)"
+                    "O1" "O(1)"
+                    "Olog" "O(\\log n)"
+                    "Olon" "O(n \\log n)"
+                    "ali" "aligned"
+                    ;; bind to functions!
+                    "Sum" (lambda () (interactive)
+                            (yas-expand-snippet "\\sum\\limits_{$1}^{$2} $0"))
+                    "Span" (lambda () (interactive)
+                             (yas-expand-snippet "\\Span($1)$0"))
+                    "beg" (lambda () (interactive)
+                            (yas-expand-snippet "\\begin{$1}\n $0 \n \\end{$1}"))
+                    "{lr" (lambda () (interactive)
+                            (yas-expand-snippet "\\lbrace $1 \\rbrace"))
+                    "(lr" (lambda () (interactive)
+                            (yas-expand-snippet "\\lparen $1 \\rparen"))
+                    "[lr" (lambda () (interactive)
+                            (yas-expand-snippet "\\lbrack $1 \\rbrack"))
+                    "pro" (lambda () (interactive)
+                            (yas-expand-snippet "\\prod\\limits_{$1}^{$2} $0"))
+                    ;; add accent snippets
+                    :cond #'laas-object-on-left-condition
+                    "qq" (lambda () (interactive) (laas-wrap-previous-object "sqrt"))))
+#+end_src
+*** Org-fragtog
+Auto toggle preview display
+#+begin_src emacs-lisp :tangle yes
+(use-package! org-fragtog
+  :hook (org-mode . org-fragtog-mode))
+#+end_src
+
+* Meow
+#+begin_src emacs-lisp :tangle yes
+(map! :map meow-normal-state-keymap
+      ("P" #'meow-clipboard-yank)
+      ("S" #'meow-clipboard-save)
+      ("M" #'meow-comment)
+        )
+#+end_src
+** Other keymap
+#+begin_src emacs-lisp :tangle yes
+(global-set-key (kbd "C-c w") 'other-window)
+(global-set-key (kbd "C-s") '+default/search-buffer)
+(global-set-key (kbd "C-c b") 'switch-to-buffer)
+
+(after! yasnippet
+  (map! "M-/" #'yas-expand))
+#+end_src
+* Search
+** cregexp for vertico
+#+begin_src emacs-lisp :tangle yes
+(after! vertico
+  (require 'pyim-cregexp-utils)
+  (defun my-orderless-regexp (orig-func component)
+    (let ((result (funcall orig-func component)))
+      (pyim-cregexp-build result)))
+
+  (advice-add 'orderless-regexp :around #'my-orderless-regexp))
+#+end_src
+* Package
+#+begin_src emacs-lisp :tangle packages.el
+;; -*- no-byte-compile: t; -*-
+;;; $DOOMDIR/packages.el
+
+(package! telega)
+(package! rime)
+(package! kaolin-themes)
+(package! olivetti)
+(package! laas)
+(package! pyim)
+(package! orderless)
+(package! org-fragtog)
+(package! consult-org-roam)
+#+end_src
+* Init
+#+begin_src emacs-lisp :tangle no
+:lang
+        (org +pretty +roam2)
+
+:app
+        (rss +org)
+
+:config
+        literate
+#+end_src
