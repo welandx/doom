@@ -17,6 +17,8 @@
   - [[#prettify][Prettify]]
   - [[#org-roam][Org-roam]]
   - [[#latex][LaTex]]
+  - [[#org-agenda][Org-agenda]]
+  - [[#buffer-timer][Buffer timer]]
 - [[#meow][Meow]]
   - [[#other-keymap][Other keymap]]
 - [[#search][Search]]
@@ -79,8 +81,8 @@ telegram client in emacs
   (define-key telega-msg-button-map "h" nil))
 #+end_src
 ** Rime
-chinese input method, depend on librime; it's better to use system input method
-which has great performance instead of use pyim
+chinese input method, depend on librime;Instead of use pyim, it's better to use system input method
+which has great performance
 #+begin_src emacs-lisp :tangle yes
 (use-package! rime
   :defer t
@@ -201,7 +203,44 @@ Auto toggle preview display
 (use-package! org-fragtog
   :hook (org-mode . org-fragtog-mode))
 #+end_src
+** Org-agenda
+use org-roam-daily as agenda file
+#+begin_src emacs-lisp :tangle yes
+(setq org-agenda-files '("~/org/roam/daily"))
+#+end_src
+** Buffer timer
+record time
+#+begin_src emacs-lisp :tangle yes
+(after! org-roam
+  (add-load-path! "~/.doom.d/site-lisp/elisp-buffer-timer")
+  (require 'buffer-timer)
 
+;; Example list of titles and regexps to group by.  This
+(setq buffer-timer-regexp-master-list
+  '(
+    ("idle" .
+     (("generic" .			  "^\\*idle\\*")
+      ("generic2" .			  "^\\*idle-2\\*")
+      ("minibuf" .                        "^ \\*Minibuf-.*")))
+    ("personal" .
+     (("reading" .                        "lib/ebooks/")
+      ("daily" . "daily")
+      ("study" . "org/roam")
+      ("Social" .
+       (("generic" . "Telega")
+       ("hp" . "Guang")
+       ("emacs" . "zh")))
+      ("config" .                    "conf")))
+    ("work" .
+      (("elisp" . "*.el")
+       ("c++" . "*.cpp")
+       ("LaTeX" . "LaTeX")
+       ("org" . "*.org")
+       ))
+     ))
+
+  )
+#+end_src
 * Meow
 map key in meow normal mode:
 1. system clipboard
@@ -251,8 +290,10 @@ there is also ~meow-keypad-state-keymap~, but it's unnecessary to map this.
 (package! orderless)
 (package! org-fragtog)
 (package! consult-org-roam)
+(package! wakatime-mode)
 #+end_src
 * Init
+~init.el~ load before ~config.el~, so set tangle to nil in this part
 #+begin_src emacs-lisp :tangle no
 :lang
         (org +pretty +roam2)
