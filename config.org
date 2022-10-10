@@ -8,6 +8,7 @@
   - [[#line-nums][Line nums]]
   - [[#org-directory][Org directory]]
 - [[#ui][UI]]
+- [[#editor][Editor]]
 - [[#app][App]]
   - [[#telega][Telega]]
   - [[#rime][Rime]]
@@ -61,6 +62,12 @@
 only for emacs >= 29, true transparent
 #+begin_src emacs-lisp :tangle yes
 (setq default-frame-alist (append default-frame-alist '((alpha-background . 85))))
+#+end_src
+
+* Editor
+disable auto-save message
+#+begin_src emacs-lisp :tangle yes
+(setq auto-save-no-message t)
 #+end_src
 * App
 ** Telega
@@ -218,8 +225,10 @@ record time
 (after! org-roam
   (add-load-path! "~/.doom.d/site-lisp/elisp-buffer-timer")
   (require 'buffer-timer)
-(setq buffer-timer-idle-limit 100)
-;; Example list of titles and regexps to group by.  This
+  (setq buffer-timer-idle-limit 100)
+  ;; below should be set pravitely
+  ;;(setq buffer-timer-output-file (concat (getenv "HOME") "/.log/buffer-timer-%Y-%m-%d"))
+  ;; Example list of titles and regexps to group by.  This
 (setq buffer-timer-regexp-master-list
   '(
     ("idle" .
@@ -244,10 +253,7 @@ record time
     ("work" .
       (("python" . "code/python")
        ("c++" . "code/cpp")
-       ))
-     ))
-
-  )
+       )))))
 #+end_src
 ** English-helper
 base on corfu
