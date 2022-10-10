@@ -19,6 +19,7 @@
   - [[#latex][LaTex]]
   - [[#org-agenda][Org-agenda]]
   - [[#buffer-timer][Buffer timer]]
+  - [[#english-helper][English-helper]]
 - [[#meow][Meow]]
   - [[#other-keymap][Other keymap]]
 - [[#search][Search]]
@@ -90,6 +91,7 @@ which has great performance
   (default-input-method "rime")
   :config
   (setq rime-user-data-dir "~/.config/erime")
+  (setq rime-show-candidate 'minibuffer) ;; 候选样式
   (setq rime-disable-predicates
         '(
           rime-predicate-current-input-punctuation-p
@@ -210,11 +212,13 @@ use org-roam-daily as agenda file
 #+end_src
 ** Buffer timer
 record time
+
+=buffer-timer-file-name= should be specific
 #+begin_src emacs-lisp :tangle yes
 (after! org-roam
   (add-load-path! "~/.doom.d/site-lisp/elisp-buffer-timer")
   (require 'buffer-timer)
-
+(setq buffer-timer-idle-limit 100)
 ;; Example list of titles and regexps to group by.  This
 (setq buffer-timer-regexp-master-list
   '(
@@ -224,22 +228,39 @@ record time
       ("minibuf" .                        "^ \\*Minibuf-.*")))
     ("personal" .
      (("reading" .                        "lib/ebooks/")
-      ("daily" . "daily")
-      ("study" . "org/roam")
+      ("daily" .                        "daily")
+      ("study" .
+       (
+       ("math" .                   "org/roam/math")
+       ("CS"  .                     "org/roam/computer-science")
+       ("politic" .                 "org/roam/politic")
+       ("generic" .                 "org/roam")
+       ))
       ("Social" .
-       (("generic" . "Telega")
-       ("hp" . "Guang")
-       ("emacs" . "zh")))
+       (("generic" .                "Telega")
+       ("hp" .                      "Guang")
+       ("emacs" .                   "emacs_zh")))
       ("config" .                    "conf")))
     ("work" .
-      (("elisp" . "*.el")
-       ("c++" . "*.cpp")
-       ("LaTeX" . "LaTeX")
-       ("org" . "*.org")
+      (("python" . "code/python")
+       ("c++" . "code/cpp")
        ))
      ))
 
   )
+#+end_src
+** English-helper
+base on corfu
+#+begin_src emacs-lisp :tangle yes
+(use-package! corfu
+  :defer t)
+
+(use-package! corfu-english-helper
+  :defer t)
+
+(after! posframe
+  (defun my/delete-corfu ()
+    (posframe-delete " *corfu*")))
 #+end_src
 * Meow
 map key in meow normal mode:
@@ -291,6 +312,9 @@ there is also ~meow-keypad-state-keymap~, but it's unnecessary to map this.
 (package! org-fragtog)
 (package! consult-org-roam)
 (package! wakatime-mode)
+(package! corfu)
+(package! corfu-english-helper
+  :recipe (:host github :repo "manateelazycat/corfu-english-helper"))
 #+end_src
 * Init
 ~init.el~ load before ~config.el~, so set tangle to nil in this part
