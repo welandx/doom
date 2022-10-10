@@ -264,9 +264,20 @@ base on corfu
 (use-package! corfu-english-helper
   :defer t)
 
-(after! posframe
+(after! org-roam
+  (defun my/enable-english-helper ()
+    (interactive)
+    (company-mode 0)
+    (corfu-mode 1)
+    (toggle-corfu-english-helper))
+
   (defun my/delete-corfu ()
+    (interactive)
+    (require 'posframe)
+    (corfu-mode 0)
+    (company-mode 1)
     (posframe-delete " *corfu*")))
+
 #+end_src
 * Meow
 map key in meow normal mode:
