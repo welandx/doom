@@ -21,6 +21,7 @@
   - [[#org-agenda][Org-agenda]]
   - [[#buffer-timer][Buffer timer]]
   - [[#english-helper][English-helper]]
+  - [[#org-media--org-download][Org-media & org-download]]
 - [[#meow][Meow]]
   - [[#other-keymap][Other keymap]]
 - [[#search][Search]]
@@ -48,7 +49,7 @@
 #+end_src
 ** Theme
 #+begin_src emacs-lisp :tangle yes
-(setq doom-theme 'kaolin-ocean)
+(setq doom-theme 'doom-flatwhite)
 #+end_src
 ** Line nums
 #+begin_src emacs-lisp :tangle yes
@@ -68,6 +69,7 @@ only for emacs >= 29, true transparent
 disable auto-save message
 #+begin_src emacs-lisp :tangle yes
 (setq auto-save-no-message t)
+(setq scroll-conservatively 0)
 #+end_src
 * App
 ** Telega
@@ -97,6 +99,7 @@ which has great performance
   :custom
   (default-input-method "rime")
   :config
+  (define-key rime-mode-map (kbd "C-i") 'rime-force-enable)
   (setq rime-user-data-dir "~/.config/erime")
   (setq rime-show-candidate 'minibuffer) ;; 候选样式
   (setq rime-disable-predicates
@@ -225,7 +228,7 @@ record time
 (after! org-roam
   (add-load-path! "~/.doom.d/site-lisp/elisp-buffer-timer")
   (require 'buffer-timer)
-  (setq buffer-timer-idle-limit 100)
+  (setq buffer-timer-idle-limit 200)
   ;; below should be set pravitely
   ;;(setq buffer-timer-output-file (concat (getenv "HOME") "/.log/buffer-timer-%Y-%m-%d"))
   ;; Example list of titles and regexps to group by.  This
@@ -279,6 +282,19 @@ base on corfu
     (posframe-delete " *corfu*")))
 
 #+end_src
+** Org-media & org-download
+link video and audio with my notes
+#+begin_src emacs-lisp :tangle yes
+(use-package! org-media-note
+  :hook (org-mode .  org-media-note-mode)
+  :bind (
+         ("C-c h" . org-media-note-hydra/body))  ;; 主功能入口
+  :config
+  (setq org-media-note-screenshot-image-dir "~/org/imgs/")  ;; 用于存储视频截图的目录
+  )
+#+end_src
+
+pictures is necessary =org-download= can be enable in init.el with *+dragndrop* flag
 * Meow
 map key in meow normal mode:
 1. system clipboard
@@ -332,12 +348,14 @@ there is also ~meow-keypad-state-keymap~, but it's unnecessary to map this.
 (package! corfu)
 (package! corfu-english-helper
   :recipe (:host github :repo "manateelazycat/corfu-english-helper"))
+(package! org-media-note :recipe (:host github :repo "yuchen-lea/org-media-note"))
+
 #+end_src
 * Init
 ~init.el~ load before ~config.el~, so set tangle to nil in this part
 #+begin_src emacs-lisp :tangle no
 :lang
-        (org +pretty +roam2)
+        (org +pretty +roam2 +dragndrop)
 
 :app
         (rss +org)
