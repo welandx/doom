@@ -13,6 +13,8 @@
   - [[#telega][Telega]]
   - [[#rime][Rime]]
   - [[#elfeed][Elfeed]]
+  - [[#deno-bridge][Deno-bridge]]
+  - [[#eaf][EAF]]
 - [[#org-mode][Org-mode]]
   - [[#settings][settings]]
   - [[#prettify][Prettify]]
@@ -26,6 +28,8 @@
   - [[#other-keymap][Other keymap]]
 - [[#search][Search]]
   - [[#cregexp-for-vertico][cregexp for vertico]]
+  - [[#posframe-vertico][posframe vertico]]
+- [[#global][Global]]
 - [[#package][Package]]
 - [[#init][Init]]
 
@@ -41,7 +45,7 @@
 #+end_src
 ** Font
 #+begin_src emacs-lisp :tangle yes
-(setq doom-font (font-spec :family "IBM Plex Mono" :size 20)
+(setq doom-font (font-spec :family "BlexMono Nerd" :size 20)
       doom-variable-pitch-font (font-spec :family "overpass" :size 20)
       doom-unicode-font (font-spec :family "LXGW wenkai" :size 22)
       doom-serif-font (font-spec :family "Dejavu Sans Mono" :size 20)
@@ -49,7 +53,7 @@
 #+end_src
 ** Theme
 #+begin_src emacs-lisp :tangle yes
-(setq doom-theme 'doom-flatwhite)
+(setq doom-theme 'doom-Iosvkem)
 #+end_src
 ** Line nums
 #+begin_src emacs-lisp :tangle yes
@@ -70,8 +74,10 @@ disable auto-save message
 #+begin_src emacs-lisp :tangle yes
 (setq auto-save-no-message t)
 (setq scroll-conservatively 0)
+
 #+end_src
 * App
+
 ** Telega
 telegram client in emacs
 #+begin_src emacs-lisp :tangle yes
@@ -80,6 +86,7 @@ telegram client in emacs
   :bind
   ("C-c i t" . telega)
   :config
+  (setq telega-cache-dir "/tmp/telega/cache")
   (setq telega-proxies   (list '(:server "127.0.0.1":port 7891 :enable t :type (:@type "proxyTypeSocks5") )))
   (telega-notifications-mode t)
   (telega-mode-line-mode 1))
@@ -115,6 +122,33 @@ RSS: news
 #+begin_src emacs-lisp :tangle yes
 ;;(use-package! elfeed)
 #+end_src
+** Deno-bridge
+
+#+begin_src emacs-lisp :tangle yes
+;; (use-package! insert-translated-name
+;;   :defer t)
+#+end_src
+** EAF
+#+begin_src elisp :tangle yes
+  ;; (use-package eaf
+  ;;   ;; :straight (emacs-application-framwork :type git :host github :repo "manateelazycat/emacs-application-framework")
+  ;;   :load-path "~/.doom.d/site-lisp/emacs-application-framework"
+  ;;   :custom
+  ;;     (eaf-browser-continue-where-left-off t)
+  ;;   (eaf-browser-enable-adblocker t)
+  ;;   (browse-url-browser-function 'eaf-open-browser)
+  ;;   :config
+  ;;    (defalias 'browse-web #'eaf-open-browser)
+  ;;    (require 'eaf-browser)
+  ;;    (require 'eaf-rss-reader)
+  ;; (require 'eaf-jupyter)
+  ;; (require 'eaf-music-player)
+  ;; (require 'eaf-demo)
+  ;;    (require 'eaf-mindmap)
+  ;;    (require 'eaf-pdf-viewer))
+
+#+end_src
+
 * Org-mode
 ** settings
 #+begin_src emacs-lisp :tangle yes
@@ -215,6 +249,94 @@ Auto toggle preview display
 (use-package! org-fragtog
   :hook (org-mode . org-fragtog-mode))
 #+end_src
+*** Latex preview
+#+begin_src emacs-lisp :tangle yes
+;; Vertically align LaTeX preview in org mode
+;; (after! org
+;;   (defun my-org-latex-preview-advice (beg end &rest _args)
+;;     (let* ((ov (car (overlays-at (/ (+ beg end) 2) t)))
+;;            (img (cdr (overlay-get ov 'display)))
+;;            (new-img (plist-put img :ascent 95)))
+;;       (overlay-put ov 'display (cons 'image new-img))))
+;;   (advice-add 'org--make-preview-overlay
+;;               :after #'my-org-latex-preview-advice)
+
+;;   ;; from: https://kitchingroup.cheme.cmu.edu/blog/2016/11/06/
+;;   ;; Justifying-LaTeX-preview-fragments-in-org-mode/
+;;   ;; specify the justification you want
+;;   (plist-put org-format-latex-options :justify 'right)
+
+;;   (defun eli/org-justify-fragment-overlay (beg end image imagetype)
+;;     (let* ((position (plist-get org-format-latex-options :justify))
+;;            (img (create-image image 'svg t))
+;;            (ov (car (overlays-at (/ (+ beg end) 2) t)))
+;;            (width (car (image-display-size (overlay-get ov 'display))))
+;;            offset)
+;;       (cond
+;;        ((and (eq 'center position)
+;;              (= beg (line-beginning-position)))
+;;         (setq offset (floor (- (/ fill-column 2)
+;;                                (/ width 2))))
+;;         (if (< offset 0)
+;;             (setq offset 0))
+;;         (overlay-put ov 'before-string (make-string offset ? )))
+;;        ((and (eq 'right position)
+;;              (= beg (line-beginning-position)))
+;;         (setq offset (floor (- fill-column
+;;                                width)))
+;;         (if (< offset 0)
+;;             (setq offset 0))
+;;         (overlay-put ov 'before-string (make-string offset ? ))))))
+;;   (advice-add 'org--make-preview-overlay
+;;               :after 'eli/org-justify-fragment-overlay)
+
+;;   ;; from: https://kitchingroup.cheme.cmu.edu/blog/2016/11/07/
+;;   ;; Better-equation-numbering-in-LaTeX-fragments-in-org-mode/
+;;   (defun org-renumber-environment (orig-func &rest args)
+;;     (let ((results '())
+;;           (counter -1)
+;;           (numberp))
+;;       (setq results (cl-loop for (begin .  env) in
+;;                              (org-element-map (org-element-parse-buffer)
+;;                                  'latex-environment
+;;                                (lambda (env)
+;;                                  (cons
+;;                                   (org-element-property :begin env)
+;;                                   (org-element-property :value env))))
+;;                              collect
+;;                              (cond
+;;                               ((and (string-match "\\\\begin{equation}" env)
+;;                                     (not (string-match "\\\\tag{" env)))
+;;                                (cl-incf counter)
+;;                                (cons begin counter))
+;;                               ((and (string-match "\\\\begin{align}" env)
+;;                                     (string-match "\\\\notag" env))
+;;                                (cl-incf counter)
+;;                                (cons begin counter))
+;;                               ((string-match "\\\\begin{align}" env)
+;;                                (prog2
+;;                                    (cl-incf counter)
+;;                                    (cons begin counter)
+;;                                  (with-temp-buffer
+;;                                    (insert env)
+;;                                    (goto-char (point-min))
+;;                                    ;; \\ is used for a new line. Each one leads
+;;                                    ;; to a number
+;;                                    (cl-incf counter (count-matches "\\\\$"))
+;;                                    ;; unless there are nonumbers.
+;;                                    (goto-char (point-min))
+;;                                    (cl-decf counter
+;;                                             (count-matches "\\nonumber")))))
+;;                               (t
+;;                                (cons begin nil)))))
+;;       (when (setq numberp (cdr (assoc (point) results)))
+;;         (setf (car args)
+;;               (concat
+;;                (format "\\setcounter{equation}{%s}\n" numberp)
+;;                (car args)))))
+;;     (apply orig-func args))
+;;   (advice-add 'org-create-formula-image :around #'org-renumber-environment))
+#+end_src
 ** Org-agenda
 use org-roam-daily as agenda file
 #+begin_src emacs-lisp :tangle yes
@@ -225,38 +347,48 @@ record time
 
 =buffer-timer-file-name= should be specific
 #+begin_src emacs-lisp :tangle yes
-(after! org-roam
-  (add-load-path! "~/.doom.d/site-lisp/elisp-buffer-timer")
-  (require 'buffer-timer)
-  (setq buffer-timer-idle-limit 200)
-  ;; below should be set pravitely
-  ;;(setq buffer-timer-output-file (concat (getenv "HOME") "/.log/buffer-timer-%Y-%m-%d"))
-  ;; Example list of titles and regexps to group by.  This
-(setq buffer-timer-regexp-master-list
-  '(
-    ("idle" .
-     (("generic" .			  "^\\*idle\\*")
-      ("generic2" .			  "^\\*idle-2\\*")
-      ("minibuf" .                        "^ \\*Minibuf-.*")))
-    ("personal" .
-     (("reading" .                        "lib/ebooks/")
-      ("daily" .                        "daily")
-      ("study" .
-       (
-       ("math" .                   "org/roam/math")
-       ("CS"  .                     "org/roam/computer-science")
-       ("politic" .                 "org/roam/politic")
-       ("generic" .                 "org/roam")
-       ))
-      ("Social" .
-       (("generic" .                "Telega")
-       ("hp" .                      "Guang")
-       ("emacs" .                   "emacs_zh")))
-      ("config" .                    "conf")))
-    ("work" .
-      (("python" . "code/python")
-       ("c++" . "code/cpp")
-       )))))
+  (after! org-roam
+    (add-load-path! "~/.doom.d/site-lisp/elisp-buffer-timer")
+    (require 'buffer-timer)
+    (setq buffer-timer-idle-limit 200)
+    ;; below should be set pravitely
+    ;;(setq buffer-timer-output-file (concat (getenv "HOME") "/.log/buffer-timer-%Y-%m-%d"))
+    ;; Example list of titles and regexps to group by.  This
+  (setq buffer-timer-regexp-master-list
+    '(
+      ("idle" .
+       (("generic" .			  "^\\*idle\\*")
+        ("generic2" .			  "^\\*idle-2\\*")
+        ("minibuf" .                        "^ \\*Minibuf-.*")))
+      ("personal" .
+       (("reading" .                        "lib/ebooks/")
+        ("daily" .                        "daily")
+        ("study" .
+         (
+         ("math" .                   "org/roam/math")
+         ("CS"  .                     "org/roam/computer-science")
+         ("politic" .                 "org/roam/politic")
+         ("generic" .                 "org/roam")
+         ))
+        ("Social" .
+         (("generic" .                "Telega")
+         ("hp" .                      "Guang")
+         ("emacs" .                   "emacs_zh")))
+        ("config" .                    "conf")))
+      ("work" .
+        (("python" . "code/python")
+         ("c++" . "code/cpp")
+         )))))
+#+end_src
+
+disable message when save buffer
+#+begin_src emacs-lisp :tangle yes
+(defun suppress-message-advice-around (fun &rest args)
+  (let (message-log-max)
+    (with-temp-message (or (current-message) "")
+      (apply fun args))))
+;; example: suppress any messages from `save-buffer'
+(advice-add 'save-buffer :around 'suppress-message-advice-around)
 #+end_src
 ** English-helper
 base on corfu
@@ -296,15 +428,116 @@ link video and audio with my notes
 
 pictures is necessary =org-download= can be enable in init.el with *+dragndrop* flag
 * Meow
+setup:
+#+begin_src emacs-lisp :tangle yes
+(defun meow-setup ()
+  (setq meow-cheatsheet-layout meow-cheatsheet-layout-qwerty)
+  (meow-motion-overwrite-define-key
+   '("j" . meow-next)
+   '("k" . meow-prev)
+   '("<escape>" . ignore))
+  (meow-leader-define-key
+   ;; SPC j/k will run the original command in MOTION state.
+   '("j" . "H-j")
+   '("k" . "H-k")
+   ;; Use SPC (0-9) for digit arguments.
+   '("1" . meow-digit-argument)
+   '("2" . meow-digit-argument)
+   '("3" . meow-digit-argument)
+   '("4" . meow-digit-argument)
+   '("5" . meow-digit-argument)
+   '("6" . meow-digit-argument)
+   '("7" . meow-digit-argument)
+   '("8" . meow-digit-argument)
+   '("9" . meow-digit-argument)
+   '("0" . meow-digit-argument)
+   '("/" . meow-keypad-describe-key)
+   '("?" . meow-cheatsheet))
+  (meow-normal-define-key
+   '("0" . meow-expand-0)
+   '("9" . meow-expand-9)
+   '("8" . meow-expand-8)
+   '("7" . meow-expand-7)
+   '("6" . meow-expand-6)
+   '("5" . meow-expand-5)
+   '("4" . meow-expand-4)
+   '("3" . meow-expand-3)
+   '("2" . meow-expand-2)
+   '("1" . meow-expand-1)
+   '("-" . negative-argument)
+   '(";" . meow-reverse)
+   '("," . meow-inner-of-thing)
+   '("." . meow-bounds-of-thing)
+   '("[" . meow-beginning-of-thing)
+   '("]" . meow-end-of-thing)
+   '("a" . meow-append)
+   '("A" . meow-open-below)
+   '("b" . meow-back-word)
+   '("B" . meow-back-symbol)
+   '("c" . meow-change)
+   '("d" . meow-delete)
+   '("D" . meow-backward-delete)
+   '("e" . meow-next-word)
+   '("E" . meow-next-symbol)
+   '("f" . meow-find)
+   '("g" . meow-cancel-selection)
+   '("G" . meow-grab)
+   '("h" . meow-left)
+   '("H" . meow-left-expand)
+   '("i" . meow-insert)
+   '("I" . meow-open-above)
+   '("j" . meow-next)
+   '("J" . meow-next-expand)
+   '("k" . meow-prev)
+   '("K" . meow-prev-expand)
+   '("l" . meow-right)
+   '("L" . meow-right-expand)
+   '("m" . meow-join)
+   '("n" . meow-search)
+   '("o" . meow-block)
+   '("O" . meow-to-block)
+   '("p" . meow-yank)
+   '("q" . meow-quit)
+   '("Q" . meow-goto-line)
+   '("r" . meow-replace)
+   '("R" . meow-swap-grab)
+   '("s" . meow-kill)
+   '("t" . meow-till)
+   '("u" . meow-undo)
+   '("U" . meow-undo-in-selection)
+   '("v" . meow-visit)
+   '("w" . meow-mark-word)
+   '("W" . meow-mark-symbol)
+   '("x" . meow-line)
+   '("X" . meow-goto-line)
+   '("y" . meow-save)
+   '("Y" . meow-sync-grab)
+   '("z" . meow-pop-selection)
+   '("'" . repeat)
+   '("<escape>" . ignore)))
+
+(require 'meow)
+(meow-setup)
+(meow-global-mode 1)
+
+
+#+end_src
+
+bind keypad
+#+begin_src emacs-lisp :tangle yes
+(setq meow-keypad-leader-dispatch "C-c")
+#+end_src
 map key in meow normal mode:
 1. system clipboard
 2. comment
+
 #+begin_src emacs-lisp :tangle yes
 (map! :map meow-normal-state-keymap
       ("P" #'meow-clipboard-yank)
       ("S" #'meow-clipboard-save)
       ("M" #'meow-comment)
-        )
+      )
+
 #+end_src
 
 there is also ~meow-keypad-state-keymap~, but it's unnecessary to map this.
@@ -330,6 +563,65 @@ there is also ~meow-keypad-state-keymap~, but it's unnecessary to map this.
 
   (advice-add 'orderless-regexp :around #'my-orderless-regexp))
 #+end_src
+** posframe vertico
+#+begin_src emacs-lisp :tangle yes
+(use-package! vertico-posframe
+  :config
+  (vertico-posframe-mode 1))
+
+#+end_src
+* Global
+#+begin_src emacs-lisp :tangle yes
+;; (defmacro my/globally (&rest body)
+;;   `(let ((completing-read-function #'my/dmenu))
+;;      ,@body))
+
+;; (defun my/dmenu (prompt items &rest ignored)
+;;   "Like `completing-read' but instead use dmenu.
+;; Useful for system-wide scripts."
+;;   (with-temp-buffer
+;;     (thread-first
+;;       (cond
+;;        ((functionp items)
+;;         (funcall items "" nil t))
+;;        ((listp (car items))
+;;         (mapcar #'car items))
+;;        (t
+;;         items))
+;;       (string-join "\n")
+;;       string-trim
+;;       insert)
+;;     (shell-command-on-region
+;;      (point-min)
+;;      (point-max)
+;;      (pcase system-type
+;;        ('gnu/linux (format "wofi --show drun -Q '%s'" prompt))
+;;        ('darwin "choose"))
+;;      nil t "*my/dmenu error*" nil)
+;;     (string-trim (buffer-string))))
+
+
+;; (defun isamert/system-read-string (prompt)
+;;   "Like `read-string' but use an Emacs independent system level app
+;; to get user input. You need to install `zenity'."
+;;   (string-trim
+;;    (shell-command-to-string
+;;     (format "zenity --entry --text='%s'" prompt))))
+
+;; (defvar isamert/defer-to-system-app nil)
+
+;;  (define-advice my/read-string (:around (orig-fun prompt &rest args) defer-to-system-app)
+;;    "Run read-string on system-level when `isamert/defer-to-system-app` is non-nil."
+;;    (if isamert/defer-to-system-app
+;;        (isamert/system-read-string prompt)
+;;      (apply orig-fun prompt args)))
+
+
+;; (defmacro my/globally (&rest body)
+;;   `(let ((completing-read-function #'my/dmenu)
+;;          (isamert/defer-to-system-app t))
+;;      ,@body))
+#+end_src
 * Package
 #+begin_src emacs-lisp :tangle packages.el
 ;; -*- no-byte-compile: t; -*-
@@ -349,7 +641,14 @@ there is also ~meow-keypad-state-keymap~, but it's unnecessary to map this.
 (package! corfu-english-helper
   :recipe (:host github :repo "manateelazycat/corfu-english-helper"))
 (package! org-media-note :recipe (:host github :repo "yuchen-lea/org-media-note"))
+(package! deno-bridge
+  :recipe (:host github :repo "manateelazycat/deno-bridge"))
+(package! websocket)
+(package! insert-translated-name
+  :recipe (:host github :repo "manateelazycat/insert-translated-name"))
 
+(package! vertico-posframe)
+(package! meow)
 #+end_src
 * Init
 ~init.el~ load before ~config.el~, so set tangle to nil in this part
